@@ -3,6 +3,7 @@ package converter
 import (
 	"fmt"
 	"image/png"
+	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -14,7 +15,7 @@ import (
 // Convert converts each page of the PDF at pdfPath to a PNG file in outDir.
 // Returns the list of created PNG file paths in page order.
 // Uses 300 DPI (scale = 300/72 ≈ 4.167).
-func Convert(pdfPath, outDir string) ([]string, error) {
+func Convert(pdfPath, outDir string, progress io.Writer) ([]string, error) {
 	doc, err := fitz.New(pdfPath)
 	if err != nil {
 		if isPasswordError(err) {
@@ -35,7 +36,9 @@ func Convert(pdfPath, outDir string) ([]string, error) {
 
 	var files []string
 	for i := 0; i < n; i++ {
-		fmt.Printf("Converting page %d/%d...\n", i+1, n)
+		if progress != nil {
+			fmt.Fprintf(progress, "Converting page %d/%d...\n", i+1, n)
+		}
 
 		img, err := doc.ImageDPI(i, 300)
 		if err != nil {
@@ -62,10 +65,10 @@ func Convert(pdfPath, outDir string) ([]string, error) {
 	return files, nil
 }
 
+// isPasswordError detects password-protected PDFs by inspecting the error
+// string from go-fitz. go-fitz does not expose typed errors, so this relies
+// on MuPDF's error message wording. Re-verify after go-fitz upgrades.
 func isPasswordError(err error) bool {
-	if err == nil {
-		return false
-	}
 	msg := err.Error()
 	return strings.Contains(msg, "password") || strings.Contains(msg, "encrypted")
 }

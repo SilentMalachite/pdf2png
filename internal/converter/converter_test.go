@@ -1,6 +1,7 @@
 package converter_test
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -59,7 +60,7 @@ func TestConvert_SinglePage(t *testing.T) {
 	pdfPath := writeTempPDF(t)
 	outDir := t.TempDir()
 
-	files, err := converter.Convert(pdfPath, outDir)
+	files, err := converter.Convert(pdfPath, outDir, io.Discard)
 	if err != nil {
 		t.Fatalf("Convert() error = %v", err)
 	}
@@ -86,7 +87,7 @@ func TestConvert_FileNaming(t *testing.T) {
 	pdfPath := writeTempPDF(t)
 	outDir := t.TempDir()
 
-	files, err := converter.Convert(pdfPath, outDir)
+	files, err := converter.Convert(pdfPath, outDir, io.Discard)
 	if err != nil {
 		t.Fatalf("Convert() error = %v", err)
 	}
@@ -114,7 +115,7 @@ func TestConvert_NoPages(t *testing.T) {
 	}
 	f.Close()
 
-	_, err = converter.Convert(f.Name(), t.TempDir())
+	_, err = converter.Convert(f.Name(), t.TempDir(), io.Discard)
 	if err == nil {
 		t.Fatal("expected error for 0-page PDF, got nil")
 	}
@@ -134,7 +135,7 @@ func TestConvert_PasswordProtected(t *testing.T) {
 		t.Skip("testdata/encrypted.pdf not found — see comment for how to create it")
 	}
 
-	_, err := converter.Convert(fixture, t.TempDir())
+	_, err := converter.Convert(fixture, t.TempDir(), io.Discard)
 	if err == nil {
 		t.Fatal("expected error for password-protected PDF, got nil")
 	}
@@ -144,7 +145,7 @@ func TestConvert_PasswordProtected(t *testing.T) {
 }
 
 func TestConvert_InvalidPath(t *testing.T) {
-	_, err := converter.Convert("/nonexistent/path/file.pdf", t.TempDir())
+	_, err := converter.Convert("/nonexistent/path/file.pdf", t.TempDir(), io.Discard)
 	if err == nil {
 		t.Error("expected error for nonexistent file, got nil")
 	}
