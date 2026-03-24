@@ -33,7 +33,7 @@ func run(pdfPath string) error {
 	}
 
 	// ファイル存在チェック
-	if _, err := os.Stat(pdfPath); os.IsNotExist(err) {
+	if _, err := os.Stat(pdfPath); err != nil {
 		return fmt.Errorf("file not found: %s", filepath.Base(pdfPath))
 	}
 
