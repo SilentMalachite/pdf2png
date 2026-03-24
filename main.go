@@ -34,7 +34,7 @@ func run(pdfPath string) error {
 
 	// ファイル存在チェック
 	if _, err := os.Stat(pdfPath); err != nil {
-		return fmt.Errorf("file not found: %s", filepath.Base(pdfPath))
+		return fmt.Errorf("cannot access file %s: %w", filepath.Base(pdfPath), err)
 	}
 
 	// 出力先ディレクトリの書き込み権限チェック（変換前に確認）
