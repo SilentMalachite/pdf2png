@@ -1,0 +1,68 @@
+name: Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-13
+            goos: darwin
+            goarch: amd64
+            artifact: pdf2png-darwin-amd64
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
+            artifact: pdf2png-darwin-arm64
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+            artifact: pdf2png-windows-amd64.exe
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      # Windows: CGo に必要な MinGW-w64 GCC を導入
+      - name: Install MinGW (Windows only)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: mingw-w64-x86_64-gcc
+          path-type: inherit
+
+      - name: Test
+        shell: bash
+        env:
+          CGO_ENABLED: '1'
+          CC: ${{ runner.os == 'Windows' && 'x86_64-w64-mingw32-gcc' || '' }}
+        run: go test ./...
+
+      - name: Build
+        shell: bash
+        env:
+          CGO_ENABLED: '1'
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          # Windows: MSYS2 GCC を明示的に指定
+          CC: ${{ runner.os == 'Windows' && 'x86_64-w64-mingw32-gcc' || '' }}
+        run: |
+          go build -ldflags="-s -w" -o "${{ matrix.artifact }}" .
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.artifact }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
