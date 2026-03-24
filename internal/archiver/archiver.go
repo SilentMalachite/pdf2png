@@ -18,14 +18,15 @@ func Archive(files []string, zipPath string) error {
 	defer f.Close()
 
 	w := zip.NewWriter(f)
-	defer w.Close()
 
 	for _, src := range files {
 		if err := addFile(w, src); err != nil {
+			w.Close() // best-effort cleanup
 			return err
 		}
 	}
-	return nil
+
+	return w.Close() // checked: returns error if flush fails
 }
 
 func addFile(w *zip.Writer, src string) error {

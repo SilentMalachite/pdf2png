@@ -53,30 +53,40 @@ func TestArchive(t *testing.T) {
 }
 
 func TestArchiveOverwrite(t *testing.T) {
-	// 同名 ZIP が存在する場合に上書きされることを確認
+	// 同名 ZIP が存在する場合に内容が置き換わることを確認
 	srcDir := t.TempDir()
-	p := filepath.Join(srcDir, "page_01.png")
-	if err := os.WriteFile(p, []byte("data"), 0644); err != nil {
-		t.Fatal(err)
-	}
-
 	outDir := t.TempDir()
 	zipPath := filepath.Join(outDir, "output.zip")
 
-	// 1回目
-	if err := archiver.Archive([]string{p}, zipPath); err != nil {
+	// 1回目: page_first.png を含む ZIP を作成
+	first := filepath.Join(srcDir, "page_first.png")
+	if err := os.WriteFile(first, []byte("first"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	info1, _ := os.Stat(zipPath)
+	if err := archiver.Archive([]string{first}, zipPath); err != nil {
+		t.Fatal(err)
+	}
 
-	// 2回目（上書き）
-	if err := archiver.Archive([]string{p}, zipPath); err != nil {
+	// 2回目: page_second.png で上書き
+	second := filepath.Join(srcDir, "page_second.png")
+	if err := os.WriteFile(second, []byte("second"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := archiver.Archive([]string{second}, zipPath); err != nil {
 		t.Fatalf("second Archive() error = %v", err)
 	}
-	info2, _ := os.Stat(zipPath)
 
-	// ModTime が変わっていることで上書きを確認
-	if !info2.ModTime().After(info1.ModTime()) {
-		t.Log("note: modtime may not change in fast test runs, checking file exists")
+	// ZIP の内容が 2 回目の内容に完全に置き換わっていることを確認
+	r, err := zip.OpenReader(zipPath)
+	if err != nil {
+		t.Fatalf("cannot open zip: %v", err)
+	}
+	defer r.Close()
+
+	if len(r.File) != 1 {
+		t.Errorf("zip contains %d files after overwrite, want 1", len(r.File))
+	}
+	if len(r.File) > 0 && r.File[0].Name != "page_second.png" {
+		t.Errorf("zip entry name = %q, want page_second.png", r.File[0].Name)
 	}
 }
