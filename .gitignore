@@ -1,0 +1,9 @@
+# Binaries
+pdf2png
+pdf2png.exe
+pdf2png-darwin-amd64
+pdf2png-darwin-arm64
+pdf2png-windows-amd64.exe
+
+# Go test binaries
+*.test
