@@ -1,0 +1,50 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            goos: darwin
+            goarch: amd64
+          - os: macos-15
+            goos: darwin
+            goarch: arm64
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install MinGW (Windows only)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: mingw-w64-x86_64-gcc
+          path-type: inherit
+
+      - name: Test
+        shell: bash
+        env:
+          CGO_ENABLED: '1'
+          CC: ${{ runner.os == 'Windows' && 'x86_64-w64-mingw32-gcc' || '' }}
+        run: go test ./...

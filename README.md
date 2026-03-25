@@ -1,6 +1,6 @@
 # pdf2png
 
-[![Build](https://github.com/SilentMalachite/pdf2png/actions/workflows/build.yml/badge.svg)](https://github.com/SilentMalachite/pdf2png/actions/workflows/build.yml)
+[![Test](https://github.com/SilentMalachite/pdf2png/actions/workflows/test.yml/badge.svg)](https://github.com/SilentMalachite/pdf2png/actions/workflows/test.yml)
 [![Release](https://img.shields.io/github/v/release/SilentMalachite/pdf2png)](https://github.com/SilentMalachite/pdf2png/releases)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 [![Go](https://img.shields.io/badge/Go-1.26-00ADD8.svg?logo=go)](https://go.dev/)
