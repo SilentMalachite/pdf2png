@@ -1,5 +1,10 @@
 # pdf2png
 
+[![Build](https://github.com/hiro/pdf2png/actions/workflows/build.yml/badge.svg)](https://github.com/hiro/pdf2png/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/hiro/pdf2png)](https://github.com/hiro/pdf2png/releases)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
+[![Go](https://img.shields.io/badge/Go-1.26-00ADD8.svg?logo=go)](https://go.dev/)
+
 PDFファイルをページごとにPNG画像へ変換し、ZIPファイルにまとめて出力するCLIツールです。
 
 ## 特徴
