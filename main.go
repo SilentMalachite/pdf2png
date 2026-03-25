@@ -12,17 +12,19 @@ import (
 )
 
 func main() {
-	// 引数チェック: usage エラーは pause なしで終了（ドラッグ&ドロップではなく誤操作）
 	if len(os.Args) != 2 {
 		fmt.Fprintln(os.Stderr, "Usage: pdf2png <file.pdf>")
+		pause()
 		os.Exit(1)
 	}
 
 	if err := run(os.Args[1]); err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
-		pauseOnError() // ドラッグ&ドロップ利用者がエラーを確認できるよう一時停止
+		pause()
 		os.Exit(1)
 	}
+
+	pause()
 }
 
 func run(pdfPath string) error {
@@ -72,8 +74,8 @@ func run(pdfPath string) error {
 	return nil
 }
 
-// pauseOnError はエラー時にユーザーの確認を待つ（ドラッグ&ドロップ利用者向け）。
-func pauseOnError() {
+// pause はユーザーの Enter キー入力を待つ（ドラッグ&ドロップ利用者向け）。
+func pause() {
 	fmt.Fprint(os.Stderr, "Press Enter to exit...")
 	bufio.NewReader(os.Stdin).ReadString('\n')
 }
