@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/hiro/pdf2png/internal/archiver"
+	"github.com/SilentMalachite/pdf2png/internal/archiver"
 )
 
 func TestArchive(t *testing.T) {
