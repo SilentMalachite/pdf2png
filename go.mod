@@ -1,4 +1,4 @@
-module github.com/hiro/pdf2png
+module github.com/SilentMalachite/pdf2png
 
 go 1.26.1
 
