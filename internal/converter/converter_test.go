@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hiro/pdf2png/internal/converter"
+	"github.com/SilentMalachite/pdf2png/internal/converter"
 )
 
 // minimalPDF is a minimal valid 1-page PDF that MuPDF can parse.

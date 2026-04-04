@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hiro/pdf2png/internal/archiver"
-	"github.com/hiro/pdf2png/internal/converter"
+	"github.com/SilentMalachite/pdf2png/internal/archiver"
+	"github.com/SilentMalachite/pdf2png/internal/converter"
 )
 
 func main() {
