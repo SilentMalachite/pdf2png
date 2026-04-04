@@ -88,7 +88,7 @@ ZIP内のファイル構成:
 ### ビルド
 
 ```bash
-git clone https://github.com/hiro/pdf2png.git
+git clone https://github.com/SilentMalachite/pdf2png.git
 cd pdf2png
 CGO_ENABLED=1 go build -o pdf2png .
 ```
