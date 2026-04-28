@@ -5,19 +5,24 @@
 
 ## Overview
 
-Go製CLIツール。PDFファイルをドラッグ&ドロップで受け取り、ページごとにPNG画像（300DPI）を生成し、ZIPファイルにまとめて出力する。社内利用向け単一バイナリ配布。
+Go製GUI/CLIツール。GUIではPDFファイルと出力先フォルダを選び、ページごとにPNG画像（300DPI）を生成してZIPファイルにまとめて出力する。CLIではPDFファイルパスを引数で受け取り、従来通りPDFと同じフォルダにZIPを出力する。社内利用向け単一バイナリ配布。
 
 ## Requirements
 
-- PDFファイルパスをコマンドライン引数（`os.Args[1]`）で受け取る（ドラッグ&ドロップ対応）
+- 引数なし起動ではGUIを開く
+- CLIではPDFファイルパスをコマンドライン引数（`os.Args[1]`）で受け取る
+- GUIではPDFファイルと出力先フォルダを選択できる
 - ページごとにPNG画像を生成（300DPI）
 - PNG群をZIPに圧縮して出力
 - ZIPファイル名はPDFファイル名から自動生成（例: `報告書2024.pdf` → `報告書2024.zip`）
-- ZIP出力先はPDFと同じディレクトリ
+- GUIのZIP出力先は選択した出力先フォルダ
+- CLIのZIP出力先はPDFと同じディレクトリ
+- GUIでは同名ZIPが存在する場合に上書き確認する
 - 中間生成したPNGは最後に削除（一時ディレクトリ使用）
 - macOS・Windows両対応
 - 単一バイナリで配布
-- エラー時のみ `Press Enter to exit` で一時停止（ドラッグ&ドロップ利用者向け）
+- GUIでは進捗ログ、完了ダイアログ、エラーダイアログを表示する
+- CLIではエラー時に `Press Enter to exit` で一時停止する
 - 成功時はそのまま終了（exit code 0）
 - エラー時は exit code 1
 
@@ -31,13 +36,15 @@ Go製CLIツール。PDFファイルをドラッグ&ドロップで受け取り�
 - ライセンス: AGPL（社内利用のため問題なし）
 - DPI指定: `scale = 300.0 / 72.0 ≈ 4.167` のスケール係数で指定
 
-ZIP圧縮は標準ライブラリ `archive/zip` を使用。
+GUIは **Fyne** (`fyne.io/fyne/v2`) を使用する。ZIP圧縮は標準ライブラリ `archive/zip` を使用。
 
 ## Project Structure
 
 ```
 pdf2png/
 ├── main.go
+├── gui.go              # Fyne GUI
+├── main_test.go        # 出力先指定・上書き確認境界のテスト
 ├── internal/
 │   ├── converter/
 │   │   └── converter.go    # PDF→PNG変換（go-fitz）
@@ -51,11 +58,37 @@ pdf2png/
 
 ## Data Flow
 
+### GUI
+
+```
+[引数なし起動]
+        ↓
+  Fyne GUI を表示
+        ↓
+  PDFファイル選択
+  - .pdf以外は変換開始時にエラー
+  - PDF選択時、出力先フォルダの初期値はPDFと同じディレクトリ
+        ↓
+  出力先フォルダ選択（任意で変更）
+        ↓
+  変換開始
+  - PDF/出力先未選択: エラーダイアログ
+  - 出力先ディレクトリへの書き込み権限確認
+  - 同名ZIPが存在: 上書き確認ダイアログ
+        ↓
+  変換中は操作ボタンを無効化し、進捗ログを表示
+        ↓
+  完了時はZIPパスをログとダイアログに表示
+```
+
+### CLI
+
 ```
 [os.Args[1]: PDFファイルパス]
         ↓
   引数バリデーション
-  - 引数なし/複数: usage表示してexit(1)（pause なし）
+  - 引数なし: GUI起動
+  - 引数複数: usage表示してexit(1)
   - ファイル不存在: エラーメッセージ → pause → exit(1)
   - .pdf以外の拡張子（大文字小文字不問）: エラー → pause → exit(1)
   - 出力ディレクトリへの書き込み権限確認（変換開始前）: エラー → pause → exit(1)
@@ -69,7 +102,7 @@ pdf2png/
         ↓
   PNG群をZIPに圧縮 (archive/zip)
   - 出力先: PDFと同じディレクトリ
-  - 同名ZIPが存在する場合: 上書き（警告なし）
+  - 同名ZIPが存在する場合: 上書き（CLIのみ警告なし）
         ↓
   完了メッセージ表示 "Done: 報告書2024.zip"
   exit(0)
@@ -79,9 +112,13 @@ pdf2png/
 
 | ケース | メッセージ例 | 動作 |
 |--------|-------------|------|
-| 引数なし | `Usage: pdf2png <file.pdf>` | exit(1)、pause なし |
-| 引数複数 | `Usage: pdf2png <file.pdf>` | exit(1)、pause なし |
-| ファイル不存在 | `Error: file not found: foo.pdf` | pause → exit(1) |
+| 引数なし | なし | GUI起動 |
+| 引数複数 | `Usage: pdf2png <file.pdf>` | exit(1) |
+| GUIでPDF未選択 | `PDFファイルを選択してください` | エラーダイアログ |
+| GUIで出力先未選択 | `出力先フォルダを選択してください` | エラーダイアログ |
+| GUIで同名ZIPあり | `... は既に存在します。上書きしますか？` | 確認ダイアログ |
+| ファイル不存在 | `Error: cannot access file foo.pdf: ...` | pause → exit(1) |
+| 出力先ディレクトリ不存在 | `Error: cannot access output directory: /path` | pause → exit(1) |
 | .pdf以外の拡張子 | `Error: not a PDF file: foo.txt` | pause → exit(1) |
 | 書き込み権限なし | `Error: cannot write to directory: /path` | pause → exit(1) |
 | パスワード保護PDF | `Error: PDF is password-protected` | pause → exit(1) |

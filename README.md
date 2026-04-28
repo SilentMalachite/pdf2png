@@ -5,15 +5,17 @@
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 [![Go](https://img.shields.io/badge/Go-1.26-00ADD8.svg?logo=go)](https://go.dev/)
 
-PDFファイルをページごとにPNG画像へ変換し、ZIPファイルにまとめて出力するCLIツールです。
+PDFファイルをページごとにPNG画像へ変換し、ZIPファイルにまとめて出力するGUI/CLIツールです。
 
 ## 特徴
 
 - PDFの各ページを **300 DPI** のPNG画像に変換
 - 生成したPNGを **ZIPファイル** にまとめて出力
 - ZIPのファイル名はPDFから自動生成（例: `報告書2024.pdf` → `報告書2024.zip`）
+- GUIでPDFファイルと出力先フォルダを選択可能
+- 既存ZIPがある場合はGUIで上書き確認
 - **macOS / Windows** 対応の単一バイナリで配布
-- ファイルを **ドラッグ&ドロップ** するだけで使える
+- CLI実行にも対応
 
 ## ダウンロード
 
@@ -35,9 +37,21 @@ chmod +x pdf2png-darwin-arm64
 
 ## 使い方
 
-### ドラッグ&ドロップ
+### GUI
 
-バイナリにPDFファイルをドラッグ&ドロップするだけで変換が始まります。
+バイナリを引数なしで起動するとGUIが開きます。
+
+```bash
+./pdf2png
+```
+
+GUIでは以下を選択して変換できます。
+
+1. PDFファイル
+2. 出力先フォルダ
+3. 変換開始
+
+変換が完了すると、選択した出力先フォルダに `報告書2024.zip` のようなZIPファイルが生成されます。同名ZIPが既に存在する場合は、上書きしてよいか確認します。
 
 ### コマンドライン
 
@@ -45,7 +59,7 @@ chmod +x pdf2png-darwin-arm64
 ./pdf2png 報告書2024.pdf
 ```
 
-変換が完了すると、PDFと同じフォルダに `報告書2024.zip` が生成されます。
+変換が完了すると、PDFと同じフォルダに `報告書2024.zip` が生成されます。CLI実行時は従来通り同名ZIPがあれば上書きします。
 
 ```
 Converting page 1/10...
@@ -69,13 +83,14 @@ ZIP内のファイル構成:
 
 ## エラー時の動作
 
-エラーが発生した場合はメッセージを表示して一時停止します（ドラッグ&ドロップ利用時にウィンドウが閉じないよう）。
+GUIではエラーダイアログとログ欄にエラー内容を表示します。CLIではエラーメッセージを表示して一時停止します。
 
 | 状況 | メッセージ |
 |------|-----------|
 | パスワード保護PDF | `PDF is password-protected` |
 | ページ数0のPDF | `PDF has no pages` |
 | 書き込み権限なし | `cannot write to directory: ...` |
+| 出力先に既存ZIPあり（GUI） | 上書き確認ダイアログを表示 |
 
 ## 開発者向け
 
@@ -84,6 +99,7 @@ ZIP内のファイル構成:
 - Go 1.26 以上
 - Xcode コマンドラインツール（macOS）: `xcode-select --install`
 - MinGW-w64（Windows）
+- GUIには [Fyne](https://fyne.io/) を使用
 
 ### ビルド
 
